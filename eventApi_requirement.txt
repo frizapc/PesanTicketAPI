@@ -1,0 +1,73 @@
+🔴Key Features
+
+User Authentication and Profiles
+Event Management (CRUD operations)
+Ticket Sales and QR Code Generation
+Attendee Registration and Check-In
+Notifications and Reminders
+
+🔴Database Schema
+
+Users Table
+id (integer, primary key, auto-increment)
+name (string)
+email (string, unique)
+password (string, hashed)
+created_at (timestamp)
+updated_at (timestamp)
+
+Events Table
+id (integer, primary key, auto-increment)
+title (string)
+description (text)
+location (string)
+start_time (datetime)
+end_time (datetime)
+organizer_id (integer, foreign key to users table)
+created_at (timestamp)
+updated_at (timestamp)
+
+Tickets Table
+id (integer, primary key, auto-increment)
+event_id (integer, foreign key to events table)
+user_id (integer, foreign key to users table)
+ticket_code (string, unique)
+created_at (timestamp)
+updated_at (timestamp)
+
+Attendees Table
+id (integer, primary key, auto-increment)
+event_id (integer, foreign key to events table)
+user_id (integer, foreign key to users table)
+check_in_time (datetime, nullable)
+created_at (timestamp)
+updated_at (timestamp)
+
+🔴Endpoints
+
+User Authentication
+POST /api/register: Register a new user
+POST /api/login: Authenticate a user and return a token
+POST /api/logout: Log out the authenticated user
+
+User Profiles
+GET /api/user: Get the authenticated user's profile
+
+Event Management
+GET /api/events: List all events
+POST /api/events: Create a new event (organizers only)
+GET /api/events/{id}: Get details of a specific event
+PUT /api/events/{id}: Update a specific event (organizers only)
+DELETE /api/events/{id}: Delete a specific event (organizers only)
+
+Ticket Sales and QR Code Generation
+POST /api/events/{id}/tickets: Purchase a ticket for an event
+GET /api/tickets/{id}: Get details of a specific ticket (including QR code)
+
+Attendee Registration and Check-In
+POST /api/events/{id}/register: Register for an event
+POST /api/events/{id}/check-in: Check-in to an event (organizers only)
+
+Notifications and Reminders
+GET /api/notifications: List notifications for the authenticated user
+POST /api/notifications/send: Send notifications to attendees (organizers only)
