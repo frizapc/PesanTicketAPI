@@ -18,8 +18,7 @@ class LoginResource extends ResourceCollection
         [$data] = $this->collection;
         return [
             'data' => [
-                        'user_id'=> $data->accessToken->tokenable_id,
-                        'token' => explode('|', $data->plainTextToken)[1],
+                        'token' => $data
                       ],
             'message' => "Berhasil login",
             'status' => 200,
