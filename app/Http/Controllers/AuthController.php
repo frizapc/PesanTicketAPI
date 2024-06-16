@@ -4,21 +4,34 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginValidator;
 use App\Http\Requests\RegistrationValidator;
-use App\Http\Resources\LoginResource;
-use App\Http\Resources\LogoutResource;
-use App\Http\Resources\RegistrationResource;
+use App\Http\Resources\AuthResource;
 use App\Models\User;
-use GuzzleHttp\Middleware;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController
 {
     public function  register(RegistrationValidator $request){
         $validator = $request->validated();
-        $user = User::create($validator);
-        return new RegistrationResource([$user]);
+        $user = User::create($validator);       
+        $user = [
+                    'name'=> $user['name'],
+                    'email'=> $user['email'],
+                ];
+        return new AuthResource("Akun anda berhasil dibuat", 201, $user);
+
+        // $validator = $request->validated();
+        // $user = User::create($validator);
+        // $filename = 'pict-'.$user['id'].'.jpg';
+        // $request->picture->storeAs('images', $filename);        
+        // $user = [
+        //             'name'=> $user['name'],
+        //             'email'=> $user['email'],
+        //             'picture'=> Storage::url($filename),
+        //         ];
+        // return new AuthResource("Akun anda berhasil dibuat", 201, $user);
     }
 
     public function  login(LoginValidator $request, AuthenticationException $th){
@@ -30,13 +43,18 @@ class AuthController
 
         $user = $request->user();
         $user->tokens()->where('tokenable_id', $user['id'])->delete();
-        $token = $user->createToken('API Token', ['*'],now()->addDays(1));
+        $token = $user->createToken('Auth Token', ['user'],now()->addDays(1));
 
-        return new LoginResource([$token->plainTextToken]);
+        return new AuthResource("Berhasil login", 200, $token->plainTextToken);
     }
 
     public function  logout(Request $request){
         $request->user()->currentAccessToken()->delete();
-        return new LogoutResource([]);
+        return new AuthResource("Anda telah logout", 200);
+    }
+
+    public function uploadFileTest(Request $request){
+        $request->photo->storeAs('images', 'testPicture.jpg');
+        return Storage::url('testPicture.jpg');
     }
 }

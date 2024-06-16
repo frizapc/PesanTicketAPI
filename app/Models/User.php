@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Concerns\HasUlids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class User extends Authenticatable
@@ -31,8 +32,11 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $hidden = [
-        'remember_token',
-        "password"
+        "remember_token",
+        "password",
+        "email_verified_at",
+        "created_at",
+        "updated_at",
     ];
 
     /**
@@ -48,7 +52,7 @@ class User extends Authenticatable
         ];
     }
 
-    // public function userToken():HasOne{
-    //     return $this->hasOne(PersonalAccessToken::class, 'tokenable_id');
-    // }
+    public function userEvents():HasMany{
+        return $this->hasMany(Event::class, 'organizer_id');
+    }
 }
