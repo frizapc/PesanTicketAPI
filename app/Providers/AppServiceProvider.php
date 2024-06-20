@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\Event;
+use App\Models\Ticket;
 use App\Models\User;
 use App\Policies\EventPolicy;
+use App\Policies\TicketPolicy;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -32,5 +34,6 @@ class AppServiceProvider extends ServiceProvider
             return $user->id === $event->organizer_id;
         });
         Gate::policy(Event::class, EventPolicy::class);
+        Gate::policy(Ticket::class, TicketPolicy::class);
     }
 }

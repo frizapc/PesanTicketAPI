@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EventController;
+use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserController;
 use App\Http\Resources\EventResource;
 use Illuminate\Http\Request;
@@ -22,11 +23,23 @@ Route::prefix('user')->controller(UserController::class)->group(function () {
 
 Route::prefix('events')
     ->controller(EventController::class)
-    ->missing(function () {return new EventResource('Event tidak ditemukan', 404);})->group(function () {
+    ->missing(function () {return new EventResource('Event tidak ditemukan', 404);})
+    ->group(function () {
         Route::post('', 'create')->middleware('auth:sanctum');
         Route::get('', 'findAll');
         Route::get('/{event}', 'findOne');
         Route::put('/{event}', 'update')->middleware('auth:sanctum');
         Route::delete('/{event}', 'deleteOne')->middleware('auth:sanctum');
         Route::delete('', 'deleteAll')->middleware('auth:sanctum');
+
+        Route::post('{event}/register', 'attendeeRegister')->middleware('auth:sanctum');
+        Route::post('{event}/check-in', 'organizerCheckIn')->middleware('auth:sanctum');
+});
+
+Route::prefix('tickets')
+    ->controller(TicketController::class)
+    ->missing(function () {return new EventResource('Event tidak ditemukan', 404);})
+    ->group(function () {
+        Route::post('/event/{event}', 'purchase')->middleware('auth:sanctum');
+        Route::get('/{ticket}', 'getDetail')->middleware('auth:sanctum');
 });

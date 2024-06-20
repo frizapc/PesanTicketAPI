@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EventValidator;
 use App\Http\Resources\EventResource;
+use App\Models\Attendee;
 use App\Models\Event;
-use App\Models\PersonalAccessToken;
-use App\Models\User;
-use Illuminate\Auth\Access\Response;
-use Illuminate\Auth\AuthenticationException;
+use App\Models\Ticket;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -24,8 +22,8 @@ class EventController
     
         $event = Event::create($validator);
         
-        $filename = 'pict-'.$event['id'].'.jpg';
-        $request->picture->storeAs('images', $filename);  
+        $filename = 'pictures/pict-'.$event['id'].'.jpg';
+        $request->picture->storeAs('', $filename);  
         $event->picture = Storage::url($filename);
 
         $event->save();
@@ -81,5 +79,58 @@ class EventController
         }
         
         return new EventResource("$respons data terhapus", 200, $respons);
+    }
+
+    public function attendeeRegister(Request $request, Event $event) {
+        $user = $request->user()['id'];
+        $event = $event['id'];
+        
+        $registerGuard = $this->registerGuard($event, $user);
+        return new EventResource($registerGuard['message'], $registerGuard['code']);
+    }
+
+    public function organizerCheckIn(Request $request, Event $event) {
+        $gate = Gate::inspect('view', $event);
+        if($gate->allowed()){
+            $attendees = Attendee::where('event_id', $event['id']);
+            $attendees->update(['check_in_time' => now('Asia/Jakarta')]);
+            $tickets = Ticket::where('event_id', $event['id']);
+            $tickets->update(['status' => 'Check-In']);
+        }
+        return new EventResource($gate->message(), $gate->code(), $gate->allowed());
+    }
+
+    private function registerGuard ($event, $user){
+        $result = ['message'=>'Tiket berhasil diregistrasikan', 'code'=>201];
+
+        $userTicket = Ticket::where([
+            ['event_id', $event],
+            ['user_id', $user],
+        ]);
+        $registeredUser = Attendee::where([
+            ['event_id', $event],
+            ['user_id', $user],
+        ]);
+
+        if(!$userTicket->exists()){
+            $result['message'] = "Tiket tidak ada";
+            $result['code'] = 409;
+            return $result;
+        }
+
+        if($registeredUser->exists()){
+            $result['message'] = "Anda sudah terdaftar";
+            $result['code'] = 409;
+            return $result;
+        }
+
+        Attendee::create([
+                'event_id' => $event,
+                'user_id' => $user,
+        ]);
+        $userTicket = $userTicket->first();
+        $userTicket->status = 'Teregistrasi';
+        $userTicket->save();
+        return $result;
     }
 }

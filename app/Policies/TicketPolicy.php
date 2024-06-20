@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Event;
+use App\Models\Ticket;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class EventPolicy
+class TicketPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,10 +19,10 @@ class EventPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Event $event)
+    public function view(User $user, Ticket $ticket)
     {
-        return $user->id === $event->organizer_id
-                ? Response::allow("Check-In Berhasil",200)
+        return $user->id === $ticket->user_id
+                ? Response::allow("Data ditemukan",200)
                 : Response::denyWithStatus(403, 'akses di tolak', 403);
     }
 
@@ -37,27 +37,23 @@ class EventPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Event $event)
+    public function update(User $user, Ticket $ticket)
     {
-        return $user->id === $event->organizer_id
-                ? Response::allow("Telah diperbarui",200)
-                : Response::denyWithStatus(403, 'akses di tolak', 403);
+        //
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Event $event)
+    public function delete(User $user, Ticket $ticket)
     {
-        return $user->id === $event->organizer_id
-                ? Response::allow("Event telah dihapus",200)
-                : Response::denyWithStatus(403, 'akses di tolak', 403);
+        //
     }
 
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Event $event)
+    public function restore(User $user, Ticket $ticket)
     {
         //
     }
@@ -65,7 +61,7 @@ class EventPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Event $event)
+    public function forceDelete(User $user, Ticket $ticket)
     {
         //
     }
