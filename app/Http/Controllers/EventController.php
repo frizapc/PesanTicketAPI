@@ -32,7 +32,7 @@ class EventController
 
         $event->save();
                 
-        return new EventResource("Event berhasil dibuat", 201, 'test');
+        return new EventResource("Event berhasil dibuat", 201);
     }
 
     public function findAll() {
@@ -53,8 +53,14 @@ class EventController
 
     public function update(Request $request, Event $event) {
         $gate = Gate::inspect('update', $event);
-         
         if ($gate->allowed()) {
+            if ($request->hasFile('picture')) {
+                $filename = 'pictures/pict-'.$event['id'].'.jpg';
+                $request->picture->storeAs('', $filename);  
+                $event->picture = Storage::url($filename);
+
+                $event->save();
+            }
             try {
             $event->title = $request->title ?? $event->getOriginal('title');
             $event->description = $request->description ?? $event->getOriginal('description');
