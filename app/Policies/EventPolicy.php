@@ -39,9 +39,15 @@ class EventPolicy
      */
     public function update(User $user, Event $event)
     {
-        return $user->id === $event->organizer_id
-                ? Response::allow("Telah diperbarui",200)
-                : Response::denyWithStatus(403, 'akses di tolak', 403);
+        if($user->id !== $event->organizer_id){
+            return Response::denyWithStatus(403, 'Akses di tolak', 403);
+        }
+        else if(!$event['available']){
+            return Response::denyWithStatus(409, 'Tidak dapat mengubah saat Event berlangsung / selesai', 409);
+        }
+        else {
+            return Response::allow("Telah diperbarui",200);
+        }
     }
 
     /**

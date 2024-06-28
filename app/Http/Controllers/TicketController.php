@@ -3,17 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Resources\EventResource;
+use App\Mail\PurchasedTicket;
 use App\Models\Event;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
-
 use Illuminate\Support\Str;
 use Endroid\QrCode\Builder\Builder;
 use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 
 class TicketController
 {
@@ -41,17 +42,19 @@ class TicketController
                 'qrcode' => $qrcode
             ]);
 
-            Ticket::create([
+            $ticket = Ticket::create([
                 "event_id" => $event,
                 "user_id" => $user,
                 "ticket_code" => $ticketCode,
                 "status" => 'Dibeli',
                 "qr_img" => Storage::url($saveQr),
             ]);
+            Mail::to($ticket->user['email'])->queue(new PurchasedTicket($ticket));
         }
 
         return new EventResource($message, $code);
     }
+    
     public function getDetail(Ticket $ticket) {
         $gate = Gate::inspect('view', $ticket);
         $result = null;

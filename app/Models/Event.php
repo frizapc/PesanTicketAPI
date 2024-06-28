@@ -17,6 +17,7 @@ class Event extends Model
         'location',
         'start_time',
         'end_time',
+        'available',
         'organizer_id'
     ];
 

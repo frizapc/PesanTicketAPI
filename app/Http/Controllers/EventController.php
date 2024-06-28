@@ -4,12 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\EventValidator;
 use App\Http\Resources\EventResource;
+use App\Jobs\FinishedEventPodcast;
+use App\Mail\RegisteredTicket;
 use App\Models\Attendee;
 use App\Models\Event;
 use App\Models\Ticket;
+use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class EventController
@@ -27,8 +31,8 @@ class EventController
         $event->picture = Storage::url($filename);
 
         $event->save();
-
-        return new EventResource("Event berhasil dibuat", 201, $event);
+                
+        return new EventResource("Event berhasil dibuat", 201, 'test');
     }
 
     public function findAll() {
@@ -44,10 +48,12 @@ class EventController
     public function findOne(Event $event) {
         $event->organizer;  
         return new EventResource("Event ditemukan", 200, $event);
+        // return Carbon::createFromFormat('Y-m-d H:i:s','2024-06-24 08:34:50');
     }
 
     public function update(Request $request, Event $event) {
         $gate = Gate::inspect('update', $event);
+         
         if ($gate->allowed()) {
             try {
             $event->title = $request->title ?? $event->getOriginal('title');
@@ -82,20 +88,25 @@ class EventController
     }
 
     public function attendeeRegister(Request $request, Event $event) {
-        $user = $request->user()['id'];
-        $event = $event['id'];
+        $user = $request->user();
         
         $registerGuard = $this->registerGuard($event, $user);
         return new EventResource($registerGuard['message'], $registerGuard['code']);
     }
 
-    public function organizerCheckIn(Request $request, Event $event) {
+    public function organizerCheckIn(Event $event, Ticket $ticket) {
         $gate = Gate::inspect('view', $event);
         if($gate->allowed()){
             $attendees = Attendee::where('event_id', $event['id']);
             $attendees->update(['check_in_time' => now('Asia/Jakarta')]);
-            $tickets = Ticket::where('event_id', $event['id']);
+            $tickets = $ticket->where([
+                ['event_id', $event['id']],
+                ['status', 'Teregistrasi'],
+            ]);
+            $event->update(['available' => false]);
             $tickets->update(['status' => 'Check-In']);
+            $time = Carbon::parse('2024-06-24 21:13:00');
+            FinishedEventPodcast::dispatch($event)->delay($time);
         }
         return new EventResource($gate->message(), $gate->code(), $gate->allowed());
     }
@@ -104,33 +115,25 @@ class EventController
         $result = ['message'=>'Tiket berhasil diregistrasikan', 'code'=>201];
 
         $userTicket = Ticket::where([
-            ['event_id', $event],
-            ['user_id', $user],
-        ]);
-        $registeredUser = Attendee::where([
-            ['event_id', $event],
-            ['user_id', $user],
+            ['event_id', $event['id']],
+            ['user_id', $user['id']],
+            ['status', 'Dibeli'],
         ]);
 
         if(!$userTicket->exists()){
-            $result['message'] = "Tiket tidak ada";
-            $result['code'] = 409;
-            return $result;
-        }
-
-        if($registeredUser->exists()){
-            $result['message'] = "Anda sudah terdaftar";
+            $result['message'] = "Tidak ada tiket";
             $result['code'] = 409;
             return $result;
         }
 
         Attendee::create([
-                'event_id' => $event,
-                'user_id' => $user,
+                'event_id' => $event['id'],
+                'user_id' => $user['id'],
         ]);
         $userTicket = $userTicket->first();
         $userTicket->status = 'Teregistrasi';
         $userTicket->save();
+        Mail::to($user['email'])->queue(new RegisteredTicket($userTicket));
         return $result;
     }
 }

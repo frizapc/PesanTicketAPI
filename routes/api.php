@@ -43,3 +43,7 @@ Route::prefix('tickets')
         Route::post('/event/{event}', 'purchase')->middleware('auth:sanctum');
         Route::get('/{ticket}', 'getDetail')->middleware('auth:sanctum');
 });
+
+Route::prefix('email')->controller(EventController::class)->group(function () {
+    Route::post('', 'emailTest');
+});
