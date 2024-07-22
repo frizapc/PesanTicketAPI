@@ -9,16 +9,20 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-Route::prefix('auth')->controller(AuthController::class)->group(function () {
-    Route::post('/register', 'register');
+Route::prefix('auth')
+    ->controller(AuthController::class)
+    ->group(function () {
+        Route::post('/register', 'register');
 
-    Route::post('/login', 'login');
+        Route::post('/login', 'login');
 
-    Route::get('/logout', 'logout')->middleware('auth:sanctum');
+        Route::post('/logout', 'logout')->middleware('auth:sanctum');
 });
 
-Route::prefix('user')->controller(UserController::class)->group(function () {
-    Route::get('', 'dashboard')->middleware('auth:sanctum');
+Route::prefix('user')
+    ->controller(UserController::class)
+    ->group(function () {
+        Route::get('', 'dashboard')->middleware('auth:sanctum');
 });
 
 Route::prefix('events')
@@ -44,6 +48,12 @@ Route::prefix('tickets')
         Route::get('/{ticket}', 'getDetail')->middleware('auth:sanctum');
 });
 
-Route::prefix('email')->controller(EventController::class)->group(function () {
-    Route::post('', 'emailTest');
+Route::prefix('email')
+    ->controller(EventController::class)
+    ->group(function () {
+        Route::post('', 'emailTest');
+});
+
+Route::fallback(function () {
+    return new EventResource('Page Not Found', 404);
 });

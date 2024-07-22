@@ -55,4 +55,7 @@ class User extends Authenticatable
     public function userEvents():HasMany{
         return $this->hasMany(Event::class, 'organizer_id');
     }
+    public function userTickets():HasMany{
+        return $this->hasMany(Ticket::class, 'user_id');
+    }
 }

@@ -21,17 +21,6 @@ class AuthController
                     'email'=> $user['email'],
                 ];
         return new AuthResource("Akun anda berhasil dibuat", 201, $user);
-
-        // $validator = $request->validated();
-        // $user = User::create($validator);
-        // $filename = 'pict-'.$user['id'].'.jpg';
-        // $request->picture->storeAs('images', $filename);        
-        // $user = [
-        //             'name'=> $user['name'],
-        //             'email'=> $user['email'],
-        //             'picture'=> Storage::url($filename),
-        //         ];
-        // return new AuthResource("Akun anda berhasil dibuat", 201, $user);
     }
 
     public function  login(LoginValidator $request, AuthenticationException $th){
@@ -51,10 +40,5 @@ class AuthController
     public function  logout(Request $request){
         $request->user()->currentAccessToken()->delete();
         return new AuthResource("Anda telah logout", 200);
-    }
-
-    public function uploadFileTest(Request $request){
-        $request->photo->storeAs('images', 'testPicture.jpg');
-        return Storage::url('testPicture.jpg');
     }
 }

@@ -15,6 +15,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 
 class EventController
 {
@@ -48,7 +50,6 @@ class EventController
     public function findOne(Event $event) {
         $event->organizer;  
         return new EventResource("Event ditemukan", 200, $event);
-        // return Carbon::createFromFormat('Y-m-d H:i:s','2024-06-24 08:34:50');
     }
 
     public function update(Request $request, Event $event) {
@@ -79,7 +80,14 @@ class EventController
     public function deleteOne(Event $event) {
         $gate = Gate::inspect('delete', $event);
         if ($gate->allowed()) {
+            Storage::delete('pictures/pict-'.$event['id'].'.jpg');
             $event->delete();
+            
+            $tickets = Ticket::where('event_id', $event['id'])->get();
+            foreach ($tickets as $ticket) {
+                $qr_name = Str::after($ticket['qr_img'], 'qrcodes/');
+                Storage::delete('qrcodes/'.$qr_name);
+            }
         }
         return new EventResource($gate->message(), $gate->code(), $gate->allowed());
     }
@@ -126,8 +134,14 @@ class EventController
             ['status', 'Dibeli'],
         ]);
 
+        if(!$event['available']){
+            $result['message'] = "Maaf, anda terlambat registrasi pada event ini";
+            $result['code'] = 403;
+            return $result;
+        }
+
         if(!$userTicket->exists()){
-            $result['message'] = "Tidak ada tiket";
+            $result['message'] = "Anda sudah terdaftar";
             $result['code'] = 409;
             return $result;
         }
