@@ -14,36 +14,43 @@ use Endroid\QrCode\Encoding\Encoding;
 use Endroid\QrCode\ErrorCorrectionLevel;
 use Endroid\QrCode\Writer\PngWriter;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class TicketController
 {
     public function purchase(Request $request, Event $event) {
         $user = $request->user()['id'];
-        $event = $event['id'];
+        $eventId = $event['id'];
+        $availableTicket = $event['available'];
         $message = 'Transaksi berhasil!';
         $code = 201;
         $hasTicket = $this->hasTicket([
-            'event' => $event,
+            'event' => $eventId,
             'user' => $user,
         ]);
 
         if($hasTicket){
             $message = 'Tiket telah anda miliki.';
             $code = 409;
-        } else {
+        }
+        else if(!$availableTicket){
+            $message = 'Event telah ditutup.';
+            $code = 409;
+        }
+        else {
             $randomNumber = $this->randomNumber();
             $ticketCode = $this->ticketCode();
             $qrcode = $this->qrGenerator($ticketCode);
             $saveQr = $this->saveQr([
                 'randomNumber' => $randomNumber,
-                'event' => $event,
+                'event' => $eventId,
                 'user' => $user,
                 'qrcode' => $qrcode
             ]);
 
             $ticket = Ticket::create([
-                "event_id" => $event,
+                "event_id" => $eventId,
                 "user_id" => $user,
                 "ticket_code" => $ticketCode,
                 "status" => 'Dibeli',

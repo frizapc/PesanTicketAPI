@@ -1,8 +1,9 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Log;
 use App\Http\Requests\EventValidator;
+use App\Http\Requests\UpdateEventValidator;
 use App\Http\Resources\EventResource;
 use App\Jobs\FinishedEventPodcast;
 use App\Mail\RegisteredTicket;
@@ -27,7 +28,6 @@ class EventController
         $validator['organizer_id'] = $user['id'];
     
         $event = Event::create($validator);
-        
         $filename = 'pictures/pict-'.$event['id'].'.jpg';
         $request->picture->storeAs('', $filename);  
         $event->picture = Storage::url($filename);
@@ -52,7 +52,7 @@ class EventController
         return new EventResource("Event ditemukan", 200, $event);
     }
 
-    public function update(Request $request, Event $event) {
+    public function update(UpdateEventValidator $request, Event $event) {
         $gate = Gate::inspect('update', $event);
         if ($gate->allowed()) {
             if ($request->hasFile('picture')) {
@@ -69,7 +69,7 @@ class EventController
             $event->start_time = $request->start_time ?? $event->getOriginal('start_time');
             $event->end_time = $request->end_time ?? $event->getOriginal('end_time');
             $event->saveOrFail();
-
+            // Log::info($request->all());
             } catch (UniqueConstraintViolationException $th) {
                 $gate->__construct(false, 'Judul sudah ada', 422);
             }
@@ -83,11 +83,13 @@ class EventController
             Storage::delete('pictures/pict-'.$event['id'].'.jpg');
             $event->delete();
             
-            $tickets = Ticket::where('event_id', $event['id'])->get();
-            foreach ($tickets as $ticket) {
+            $tickets = Ticket::where('event_id', $event['id']);
+            $getQrticket = $tickets->get();
+            foreach ($getQrticket as $ticket) {
                 $qr_name = Str::after($ticket['qr_img'], 'qrcodes/');
                 Storage::delete('qrcodes/'.$qr_name);
             }
+            $tickets->delete();
         }
         return new EventResource($gate->message(), $gate->code(), $gate->allowed());
     }
@@ -119,7 +121,7 @@ class EventController
             ]);
             $event->update(['available' => false]);
             $tickets->update(['status' => 'Check-In']);
-            $time = Carbon::parse('2024-06-24 21:13:00');
+            $time = Carbon::parse($event['end_time']);
             FinishedEventPodcast::dispatch($event)->delay($time);
         }
         return new EventResource($gate->message(), $gate->code(), $gate->allowed());

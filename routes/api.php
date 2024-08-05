@@ -5,7 +5,6 @@ use App\Http\Controllers\EventController;
 use App\Http\Controllers\TicketController;
 use App\Http\Controllers\UserController;
 use App\Http\Resources\EventResource;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 

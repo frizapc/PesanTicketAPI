@@ -155,8 +155,8 @@ return [
     | domain and all subdomains. Typically, this shouldn't be changed.
     |
     */
-
-    'domain' => env('SESSION_DOMAIN'),
+    
+    'domain' => env('SESSION_DOMAIN', null),
 
     /*
     |--------------------------------------------------------------------------

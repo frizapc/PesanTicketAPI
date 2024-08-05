@@ -21,8 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
         //
     })
     ->withSchedule(function (SchedulingSchedule $schedule) {
-        $schedule->call(function () {
-            DB::table('tickets')->delete();
-        })->everyMinute();
+        // $schedule->call(function () {
+        //     DB::table('tickets')->delete();
+        // })->everyMinute();
     })
     ->create();
