@@ -21,8 +21,8 @@ class EventFactory extends Factory
             "title"=> fake()->word(),
             "description" => fake()->text(50),
             "location" => fake()->city(),
-            "start_time" => fake()->dateTime('now', 'Asia/Jakarta'),
-            "end_time" => fake()->dateTime('now', 'Asia/Jakarta'),
+            "start_time" => fake()->dateTime('now'),
+            "end_time" => fake()->dateTime('now'),
             "organizer_id" => Str::random(26)
         ];
     }

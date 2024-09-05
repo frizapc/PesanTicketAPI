@@ -26,25 +26,27 @@ Route::prefix('user')
 
 Route::prefix('events')
     ->controller(EventController::class)
+    ->middleware('auth:sanctum')
     ->missing(function () {return new EventResource('Event tidak ditemukan', 404);})
     ->group(function () {
-        Route::post('', 'create')->middleware('auth:sanctum');
-        Route::get('', 'findAll');
-        Route::get('/{event}', 'findOne');
-        Route::put('/{event}', 'update')->middleware('auth:sanctum');
-        Route::delete('/{event}', 'deleteOne')->middleware('auth:sanctum');
-        Route::delete('', 'deleteAll')->middleware('auth:sanctum');
+        Route::get('', 'findAll')->withoutMiddleware('auth:sanctum');
+        Route::get('/{event}', 'findOne')->withoutMiddleware('auth:sanctum');
+        Route::post('', 'create');
+        Route::put('/{event}', 'update');
+        Route::delete('/{event}', 'deleteOne');
+        Route::delete('', 'deleteAll');
 
-        Route::post('{event}/register', 'attendeeRegister')->middleware('auth:sanctum');
-        Route::post('{event}/check-in', 'organizerCheckIn')->middleware('auth:sanctum');
+        Route::post('{event}/register', 'attendeeRegister');
+        Route::post('{event}/check-in', 'organizerCheckIn');
 });
 
 Route::prefix('tickets')
     ->controller(TicketController::class)
+    ->middleware('auth:sanctum')
     ->missing(function () {return new EventResource('Event tidak ditemukan', 404);})
     ->group(function () {
-        Route::post('/event/{event}', 'purchase')->middleware('auth:sanctum');
-        Route::get('/{ticket}', 'getDetail')->middleware('auth:sanctum');
+        Route::post('/event/{event}', 'purchase');
+        Route::get('/{ticket}', 'getDetail');
 });
 
 Route::prefix('email')

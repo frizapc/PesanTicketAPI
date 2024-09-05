@@ -7,6 +7,7 @@ use App\Models\Ticket;
 use App\Models\User;
 use App\Policies\EventPolicy;
 use App\Policies\TicketPolicy;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
@@ -35,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
         });
         Gate::policy(Event::class, EventPolicy::class);
         Gate::policy(Ticket::class, TicketPolicy::class);
+        Model::preventLazyLoading();
     }
 }

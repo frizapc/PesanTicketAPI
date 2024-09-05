@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers;
-use Illuminate\Support\Facades\Log;
 use App\Http\Requests\EventValidator;
 use App\Http\Requests\UpdateEventValidator;
 use App\Http\Resources\EventResource;
@@ -38,13 +37,8 @@ class EventController
     }
 
     public function findAll() {
-        $getEvents = Event::all();
-        $events = [];
-        foreach ($getEvents as $value) {
-            $value->organizer;
-            $events[] = $value;
-        }
-        return new EventResource("Event ditemukan", 200, $events);
+        $getEvents = Event::with('organizer')->paginate(2);
+        return new EventResource("Event ditemukan", 200, $getEvents);
     }
 
     public function findOne(Event $event) {
@@ -69,8 +63,8 @@ class EventController
             $event->start_time = $request->start_time ?? $event->getOriginal('start_time');
             $event->end_time = $request->end_time ?? $event->getOriginal('end_time');
             $event->saveOrFail();
-            // Log::info($request->all());
-            } catch (UniqueConstraintViolationException $th) {
+
+        } catch (UniqueConstraintViolationException $th) {
                 $gate->__construct(false, 'Judul sudah ada', 422);
             }
         }
@@ -143,7 +137,7 @@ class EventController
         }
 
         if(!$userTicket->exists()){
-            $result['message'] = "Anda sudah terdaftar";
+            $result['message'] = "Tidak memiliki tiket";
             $result['code'] = 409;
             return $result;
         }

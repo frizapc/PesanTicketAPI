@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Event;
+use App\Models\Ticket;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -14,11 +15,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Event::factory(3)->create();
-
-        // User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        for ($i=0; $i < 5; $i++) { 
+            $user = User::factory()->create();
+            for($x=0; $x < 2; $x++){
+                $event = Event::factory()->for($user, 'organizer')->create();
+                Ticket::factory()
+                    ->for($user, 'user')
+                    ->for($event, 'event')
+                    ->create();
+            }
+        }
     }
 }
